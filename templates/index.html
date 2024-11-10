@@ -2,37 +2,138 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Linear Regression Assumptions</title>
+    <title>Data Generation and Analysis</title>
+    <script>
+        // Function to generate random values for the form
+        function generateRandomValues() {
+            // Generate random values and set them to the form fields
+            document.querySelector('input[name="N"]').value = Math.floor(Math.random() * 100) + 1; // Random N between 1 and 100
+            document.querySelector('input[name="beta0"]').value = (Math.random() * 10 - 5).toFixed(2); // Random β₀ between -5 and 5
+            document.querySelector('input[name="beta1"]').value = (Math.random() * 10 - 5).toFixed(2); // Random β₁ between -5 and 5
+            document.querySelector('input[name="mu"]').value = (Math.random() * 10 - 5).toFixed(2); // Random μ between -5 and 5
+            document.querySelector('input[name="sigma2"]').value = (Math.random() * 10).toFixed(2); // Random σ² between 0 and 10
+            document.querySelector('input[name="S"]').value = Math.floor(Math.random() * 100) + 1; // Random S between 1 and 100
+        }
+    </script>
 </head>
 <body>
-    <h1>Interactive Linear Regression Assumptions</h1>
-
-    <form method="POST">
+    <h1>Generate Data and Analyze</h1>
+    
+    <!-- Data Generation Form -->
+    <form method="POST" action="/">
         <label for="N">Sample Size (N):</label>
-        <input type="number" id="N" name="N" required><br>
+        <input type="number" name="N" required><br>
+
+        <label for="beta0">Intercept (β₀):</label>
+        <input type="text" name="beta0" required><br>
+
+        <label for="beta1">Slope (β₁):</label>
+        <input type="text" name="beta1" required><br>
 
         <label for="mu">Mean (μ):</label>
-        <input type="number" step="any" id="mu" name="mu" required><br>
+        <input type="text" name="mu" required><br>
 
         <label for="sigma2">Variance (σ²):</label>
-        <input type="number" step="any" id="sigma2" name="sigma2" required><br>
+        <input type="text" name="sigma2" required><br>
 
         <label for="S">Number of Simulations (S):</label>
-        <input type="number" id="S" name="S" required><br>
+        <input type="number" name="S" required><br>
 
-        <button type="submit">Generate</button>
+        <!-- Button to generate random values for the form -->
+        <button type="button" onclick="generateRandomValues()">Generate Random Values</button>
+        <br><br>
+
+        <!-- Submit Button to Generate Data -->
+        <button type="submit">Generate Data</button>
     </form>
 
+    <hr>
+
+    <!-- Hypothesis Testing Form -->
+    <h2>Hypothesis Testing</h2>
+    <form method="POST" action="/hypothesis_test">
+        <label for="paramter">Parameter to Test:</label>
+        <select name="parameter" required>
+            <option value="slope">Slope</option>
+            <option value="intercept">Intercept</option>
+        </select><br>
+
+        <label for="test_type">Type of Test:</label>
+        <select name="test_type" required>
+            <option value=">">Greater than (>)</option>
+            <option value="<">Less than (<)</option>
+            <option value="≠">Not equal to (≠)</option>
+        </select><br>
+
+        <button type="submit">Run Hypothesis Test</button>
+    </form>
+
+    <hr>
+
+    <!-- Confidence Intervals Section -->
+    <h2>Confidence Intervals</h2>
+    <form method="POST" action="/confidence_interval">
+        <label for="parameter">Parameter to Estimate:</label>
+        <select name="parameter" required>
+            <option value="slope">Slope</option>
+            <option value="intercept">Intercept</option>
+        </select><br>
+
+        <label for="confidence_level">Confidence Level (e.g., 0.95):</label>
+        <input type="text" name="confidence_level" value="0.95" required><br>
+
+        <button type="submit">Calculate Confidence Interval</button>
+    </form>
+
+    <hr>
+
+    <!-- Displaying Results after Data Generation and Analysis -->
     {% if plot1 and plot2 %}
-        <h2>Generated Plot</h2>
-        <img src="{{ plot1 }}" alt="Regression Plot" style="width: 600px;">
+    <h2>Results</h2>
 
-        <h2>Histogram of Slopes and Intercepts</h2>
-        <img src="{{ plot2 }}" alt="Histograms" style="width: 600px;">
+    <!-- Display Scatter Plot with Regression Line -->
+    <h3>Scatter Plot with Regression Line</h3>
+    <img src="{{ plot1 }}" alt="Scatter Plot with Regression Line">
 
-        <p>Proportion of slopes more extreme than calculated slope: {{ slope_extreme | round(2) }}</p>
-        <p>Proportion of intercepts more extreme than calculated intercept: {{ intercept_extreme | round(2) }}</p>
+    <!-- Display Histogram of Slopes and Intercepts -->
+    <h3>Histogram of Slopes and Intercepts</h3>
+    <img src="{{ plot2 }}" alt="Histogram of Slopes and Intercepts">
+
+    <!-- Analysis Results -->
+    <h3>Analysis</h3>
+    <p><strong>Proportion of Simulations with More Extreme Slope: </strong>{{ slope_extreme }}</p>
+    <p><strong>Proportion of Simulations with More Extreme Intercept: </strong>{{ intercept_extreme }}</p>
     {% endif %}
+
+    <!-- Display the Histogram for Hypothesis Test Results -->
+    {% if plot3 %}
+    <h3>Histogram of Simulated Statistics</h3>
+    <img src="{{ plot3 }}" alt="Histogram of Simulated Statistics">
+    <p><strong>Test Parameter: </strong>{{ parameter }}</p>
+    <p><strong>Observed Statistic: </strong>{{ observed_stat }}</p>
+    <p><strong>Hypothesized Value: </strong>{{ hypothesized_value }}</p>
+    <p><strong>P-value: </strong>{{ p_value }}</p>
+    {% if fun_message %}
+        <p>{{ fun_message }}</p>
+    {% endif %}
+    {% endif %}
+
+    <!-- Display Confidence Interval Results -->
+    {% if plot4 %}
+    <h3>Estimates and Confidence Interval</h3>
+    <img src="{{ plot4 }}" alt="Estimates and Confidence Interval">
+    <p><strong>Confidence Level: </strong>{{ confidence_level * 100 }}%</p>
+    <p><strong>True Value: </strong>{{true_param}}</p>
+    <p><strong>Mean Estimate: </strong>{{ mean_estimate }}</p>
+    <p><strong>Confidence Interval: </strong>[{{ ci_lower }}, {{ ci_upper }}]</p>
+    <p><strong>Does the Confidence Interval Include the True Parameter? </strong>
+    {% if includes_true %}
+        Yes, the true parameter is inside the interval.
+    {% else %}
+        No, the true parameter is outside the interval.
+    {% endif %}
+    </p>
+    {% endif %}
+
 </body>
 </html>
